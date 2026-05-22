@@ -1,5 +1,6 @@
 import { Component, OnDestroy } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { SelectGroup } from '../../features/hierarchy-select/hierarchy-select.component';
 
 @Component({
   selector: 'app-invoice-upload',
@@ -8,6 +9,42 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 })
 export class InvoiceUploadComponent implements OnDestroy {
   months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+  selectedSite = '';
+
+  siteGroups: SelectGroup[] = [
+    {
+      group: 'Europe',
+      items: [
+        { value: 'uk', label: 'UK' },
+        { value: 'netherlands', label: 'the Netherlands' },
+        { value: 'france', label: 'France' }
+      ]
+    },
+    {
+      group: 'Americas',
+      items: [
+        { value: 'usa', label: 'USA' }
+      ]
+    }
+  ];
+
+  invoiceDate: string = (() => {
+    const prev = new Date();
+    prev.setDate(1);
+    prev.setMonth(prev.getMonth() - 1);
+    const y = prev.getFullYear();
+    const m = String(prev.getMonth() + 1).padStart(2, '0');
+    return `${y}-${m}-01`;
+  })();
+
+  accountingDate: string = (() => {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  })();
 
   isDragging = false;
   uploadedFileName: string | null = null;

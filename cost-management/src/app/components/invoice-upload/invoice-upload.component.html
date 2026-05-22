@@ -38,7 +38,7 @@
           <h3 class="section-title">General</h3>
           <div class="form-grid cols-3">
             <div class="field-group">
-              <label>Supplier</label>
+              <label>Supplier <span class="required-star">*</span></label>
               <select>
                 <option value="">Select Supplier</option>
                 <option>Microsoft</option>
@@ -48,24 +48,24 @@
               </select>
             </div>
             <div class="field-group">
-              <label>PAR</label>
+              <label>PAR <span class="required-star">*</span></label>
               <input type="text" placeholder="PAR" />
             </div>
             <div class="field-group">
-              <label>PO</label>
+              <label>PO <span class="required-star">*</span></label>
               <input type="text" placeholder="PO" />
             </div>
 
             <div class="field-group">
-              <label>Site</label>
-              <select>
-                <option value="">Select Site</option>
-                <option>Site A</option>
-                <option>Site B</option>
-              </select>
+              <label>Site <span class="required-star">*</span></label>
+              <app-hierarchy-select
+                [(ngModel)]="selectedSite"
+                [groups]="siteGroups"
+                placeholder="Search site…">
+              </app-hierarchy-select>
             </div>
             <div class="field-group">
-              <label>Team</label>
+              <label>Team <span class="required-star">*</span></label>
               <select>
                 <option value="">Select Team</option>
                 <option>Digital</option>
@@ -75,7 +75,7 @@
               </select>
             </div>
             <div class="field-group">
-              <label>Currency</label>
+              <label>Currency <span class="required-star">*</span></label>
               <select>
                 <option value="">Select Currency</option>
                 <option>AUD</option>
@@ -85,10 +85,6 @@
               </select>
             </div>
 
-            <div class="field-group">
-              <label>Inv Amount</label>
-              <input type="number" placeholder="0.00" />
-            </div>
             <div class="field-group toggle-field">
               <div class="toggle-container">
                 <span class="toggle-label" id="label-budgeted">Budgeted</span>
@@ -99,14 +95,14 @@
               </div>
             </div>
             <div class="field-group">
-              <label>Accounting Date</label>
-              <input type="date" />
+              <label>Accounting Date <span class="required-star">*</span></label>
+              <app-date-picker [(ngModel)]="accountingDate"></app-date-picker>
+            </div>
+            <div class="field-group">
+              <label>Inv Amount <span class="required-star">*</span></label>
+              <input type="number" placeholder="0.00" />
             </div>
 
-            <div class="field-group">
-              <label>Inv Number</label>
-              <input type="text" placeholder="INV-" />
-            </div>
             <div class="field-group toggle-field">
               <div class="toggle-container">
                 <span class="toggle-label" id="label-credit">Credit</span>
@@ -120,10 +116,30 @@
               <label>Exchange Rates</label>
               <input type="text" placeholder="1.00" />
             </div>
+            <div class="field-group">
+              <label>Inv Number <span class="required-star">*</span></label>
+              <input type="text" placeholder="INV-" />
+            </div>
 
             <div class="field-group">
-              <label>Site Currency</label>
+              <label>Invoice Date <span class="required-star">*</span></label>
+              <app-date-picker [(ngModel)]="invoiceDate" [required]="true"></app-date-picker>
+            </div>
+
+            <div class="field-group">
+              <label>Site Currency <span class="required-star">*</span></label>
               <input type="text" placeholder="AUD" />
+            </div>
+
+            <div class="field-group">
+              <label class="label-with-badge">
+                Inv Amount (Site Ccy)
+                <span class="auto-calc-badge">Auto</span>
+              </label>
+              <div class="auto-calc-field">
+                <span class="auto-calc-value">—</span>
+                <span class="auto-calc-hint">Inv Amount × FX Rate</span>
+              </div>
             </div>
           </div>
         </div>

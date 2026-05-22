@@ -1,0 +1,120 @@
+.hs-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+/* ─── Input trigger ─────────────────────────────────────────────── */
+.hs-input-wrap {
+  display: flex;
+  align-items: center;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 0 10px;
+  transition: border-color var(--transition-speed), background-color var(--transition-speed);
+
+  &:hover,
+  &.open {
+    border-color: var(--accent-color);
+  }
+
+  .hs-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: var(--text-primary);
+    font-size: 13px;
+    padding: 7px 0;
+    width: 100%;
+    min-width: 0;
+    font-family: inherit;
+    transition: color var(--transition-speed);
+
+    &::placeholder {
+      color: var(--text-muted);
+    }
+  }
+
+  .hs-chevron {
+    flex-shrink: 0;
+    color: var(--text-muted);
+    transition: transform 0.2s ease, color var(--transition-speed);
+    pointer-events: none;
+
+    &.rotated {
+      transform: rotate(180deg);
+      color: var(--accent-color);
+    }
+  }
+}
+
+/* ─── Dropdown panel ────────────────────────────────────────────── */
+.hs-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  box-shadow: 0 4px 16px var(--card-shadow);
+  padding: 6px 0;
+  max-height: 220px;
+  overflow-y: auto;
+  transition: background-color var(--transition-speed), border-color var(--transition-speed);
+}
+
+/* ─── Group header ──────────────────────────────────────────────── */
+.hs-group-header {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--accent-color);
+  padding: 8px 12px 4px;
+  transition: color var(--transition-speed);
+}
+
+/* ─── Option row ────────────────────────────────────────────────── */
+.hs-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px 7px 20px;
+  font-size: 13px;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background-color var(--transition-speed), color var(--transition-speed);
+
+  &:hover {
+    background: var(--bg-hover);
+    color: var(--accent-color);
+  }
+
+  &.hs-option--selected {
+    color: var(--accent-color);
+    font-weight: 600;
+  }
+
+  .hs-option-dot {
+    flex-shrink: 0;
+    width: 14px;
+    color: var(--accent-color);
+  }
+
+  .hs-option-dot--empty {
+    width: 14px;
+  }
+}
+
+/* ─── Empty state ───────────────────────────────────────────────── */
+.hs-empty {
+  padding: 12px;
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+  font-style: italic;
+  transition: color var(--transition-speed);
+}

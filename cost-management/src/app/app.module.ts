@@ -10,6 +10,8 @@ import { HomeComponent } from './components/home/home.component';
 import { ThemeToggleComponent } from './features/theme-toggle/theme-toggle.component';
 import { InvoiceUploadComponent } from './components/invoice-upload/invoice-upload.component';
 import { ForecastComponent } from './components/forecast/forecast.component';
+import { DatePickerComponent } from './features/date-picker/date-picker.component';
+import { HierarchySelectComponent } from './features/hierarchy-select/hierarchy-select.component';
 
 @NgModule({
   declarations: [
@@ -19,7 +21,9 @@ import { ForecastComponent } from './components/forecast/forecast.component';
     HomeComponent,
     ThemeToggleComponent,
     InvoiceUploadComponent,
-    ForecastComponent
+    ForecastComponent,
+    DatePickerComponent,
+    HierarchySelectComponent
   ],
   imports: [
     BrowserModule,
