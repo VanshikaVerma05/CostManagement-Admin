@@ -11,6 +11,161 @@
   font-weight: 700;
 }
 
+/* ─── Change History button ───────────────────────────────────── */
+.btn-change-history {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  color: var(--text-secondary);
+  padding: 12px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color var(--transition-speed), border-color var(--transition-speed), color var(--transition-speed);
+
+  svg { flex-shrink: 0; color: var(--accent-color); }
+
+  &:hover {
+    background: var(--bg-hover);
+    border-color: var(--accent-color);
+    color: var(--text-primary);
+  }
+
+  .history-count {
+    margin-left: auto;
+    background: var(--accent-color);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 10px;
+    padding: 1px 7px;
+  }
+}
+
+/* ─── History timeline (inside modal) ────────────────────────── */
+.history-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.history-entry {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 14px 16px;
+  transition: background-color var(--transition-speed), border-color var(--transition-speed);
+
+  .entry-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-color);
+    transition: border-color var(--transition-speed);
+
+    .entry-meta-left {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-muted);
+
+      svg { flex-shrink: 0; }
+    }
+
+    .entry-timestamp {
+      font-size: 12px;
+      color: var(--text-muted);
+      transition: color var(--transition-speed);
+    }
+
+    .entry-user {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent-color);
+      background: color-mix(in srgb, var(--accent-color) 10%, transparent);
+      border: 1px solid color-mix(in srgb, var(--accent-color) 25%, transparent);
+      border-radius: 20px;
+      padding: 2px 10px;
+    }
+  }
+
+  .entry-changes {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .change-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+
+    .change-field {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: var(--text-label);
+      min-width: 120px;
+      transition: color var(--transition-speed);
+    }
+
+    .change-from {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-decoration: line-through;
+      transition: color var(--transition-speed);
+    }
+
+    .change-arrow {
+      flex-shrink: 0;
+      color: var(--text-muted);
+    }
+
+    .change-to {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent-color);
+      transition: color var(--transition-speed);
+    }
+  }
+}
+
+/* ─── Empty state (inside modal) ─────────────────────────────── */
+.history-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--text-muted);
+  transition: color var(--transition-speed);
+
+  svg { opacity: 0.4; }
+
+  p {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin: 0;
+    transition: color var(--transition-speed);
+  }
+
+  span {
+    font-size: 12px;
+    max-width: 300px;
+  }
+}
+
 /* ─── Page Shell ──────────────────────────────────────────────── */
 .invoice-upload-page {
   display: flex;

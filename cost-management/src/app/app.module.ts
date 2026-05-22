@@ -12,6 +12,7 @@ import { InvoiceUploadComponent } from './components/invoice-upload/invoice-uplo
 import { ForecastComponent } from './components/forecast/forecast.component';
 import { DatePickerComponent } from './features/date-picker/date-picker.component';
 import { HierarchySelectComponent } from './features/hierarchy-select/hierarchy-select.component';
+import { ModalComponent } from './features/modal/modal.component';
 
 @NgModule({
   declarations: [
@@ -23,7 +24,8 @@ import { HierarchySelectComponent } from './features/hierarchy-select/hierarchy-
     InvoiceUploadComponent,
     ForecastComponent,
     DatePickerComponent,
-    HierarchySelectComponent
+    HierarchySelectComponent,
+    ModalComponent
   ],
   imports: [
     BrowserModule,

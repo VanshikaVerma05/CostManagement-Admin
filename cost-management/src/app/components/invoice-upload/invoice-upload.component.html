@@ -66,23 +66,19 @@
             </div>
             <div class="field-group">
               <label>Team <span class="required-star">*</span></label>
-              <select>
-                <option value="">Select Team</option>
-                <option>Digital</option>
-                <option>Operations</option>
-                <option>Finance</option>
-                <option>Projects</option>
-              </select>
+              <app-hierarchy-select
+                [(ngModel)]="selectedTeam"
+                [groups]="teamGroups"
+                placeholder="Search team…">
+              </app-hierarchy-select>
             </div>
             <div class="field-group">
               <label>Currency <span class="required-star">*</span></label>
-              <select>
-                <option value="">Select Currency</option>
-                <option>AUD</option>
-                <option>USD</option>
-                <option>EUR</option>
-                <option>GBP</option>
-              </select>
+              <app-hierarchy-select
+                [(ngModel)]="selectedCurrency"
+                [groups]="currencyGroups"
+                placeholder="Search currency…">
+              </app-hierarchy-select>
             </div>
 
             <div class="field-group toggle-field">
@@ -428,27 +424,16 @@
           </div>
         </div>
 
-        <!-- Invoice Change History -->
-        <div class="form-section">
-          <h3 class="section-title">Invoice Change History</h3>
-          <div class="change-history">
-            <table class="history-table">
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>User</th>
-                  <th>Field</th>
-                  <th>Value</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr class="empty-row">
-                  <td colspan="4">No changes recorded yet.</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <!-- Invoice Change History Button -->
+        <button class="btn-change-history" (click)="isHistoryOpen = true">
+          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+          Invoice Change History
+          <span class="history-count" *ngIf="changeHistory.length > 0">{{ changeHistory.length }}</span>
+        </button>
 
         <!-- Invoice Document Preview / Upload -->
         <div class="form-section">
@@ -519,3 +504,52 @@
   </div><!-- /scroll-area -->
 
 </div>
+
+<!-- ─── Invoice Change History Modal ──────────────────────────── -->
+<app-modal title="Invoice Change History" [isOpen]="isHistoryOpen" (closed)="isHistoryOpen = false">
+
+  <div class="history-timeline" *ngIf="changeHistory.length > 0; else noHistory">
+    <div class="history-entry" *ngFor="let entry of sortedHistory">
+
+      <div class="entry-meta">
+        <div class="entry-meta-left">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+          <span class="entry-timestamp">{{ entry.timestamp | date:'dd MMM yyyy, HH:mm' }}</span>
+        </div>
+        <span class="entry-user">{{ entry.user }}</span>
+      </div>
+
+      <div class="entry-changes">
+        <div class="change-row" *ngFor="let change of entry.changes">
+          <span class="change-field">{{ change.field }}</span>
+          <span class="change-from">{{ change.from }}</span>
+          <svg class="change-arrow" xmlns="http://www.w3.org/2000/svg" width="12" height="12"
+            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12"/>
+            <polyline points="12 5 19 12 12 19"/>
+          </svg>
+          <span class="change-to">{{ change.to }}</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <ng-template #noHistory>
+    <div class="history-empty-state">
+      <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24"
+        fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <polyline points="12 6 12 12 16 14"/>
+      </svg>
+      <p>No changes recorded yet.</p>
+      <span>History will appear here once the invoice is saved and edited.</span>
+    </div>
+  </ng-template>
+
+</app-modal>
