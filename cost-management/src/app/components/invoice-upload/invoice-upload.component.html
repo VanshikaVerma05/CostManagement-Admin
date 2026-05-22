@@ -7,11 +7,12 @@
     <div class="page-header">
       <h2 class="page-title">Invoice Upload</h2>
       <div class="header-right">
-        <button class="btn-toggle-preview" (click)="toggleSidebar()" [class.collapsed]="isPreviewCollapsed" id="btn-toggle-sidebar" title="Toggle Preview Panel">
+        <button class="btn-toggle-preview" (click)="toggleSidebar()" [class.collapsed]="isPreviewCollapsed"
+          id="btn-toggle-sidebar" title="Toggle Preview Panel">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="panel-icon">
-            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-            <line x1="15" y1="3" x2="15" y2="21"/>
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+            <line x1="15" y1="3" x2="15" y2="21" />
           </svg>
           <span>{{ isPreviewCollapsed ? 'Show Preview Panel' : 'Hide Preview Panel' }}</span>
         </button>
@@ -19,7 +20,8 @@
         <button class="btn-cancel" id="btn-invoice-cancel" title="Cancel">Cancel</button>
         <button class="btn-save" id="btn-invoice-save" title="Save">Save</button>
         <button class="btn-back" routerLink="/" title="Back to Home">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="15 18 9 12 15 6"></polyline>
           </svg>
           Back
@@ -39,13 +41,11 @@
           <div class="form-grid cols-3">
             <div class="field-group">
               <label>Supplier <span class="required-star">*</span></label>
-              <select>
-                <option value="">Select Supplier</option>
-                <option>Microsoft</option>
-                <option>AWS</option>
-                <option>Deloitte</option>
-                <option>Accenture</option>
-              </select>
+              <app-hierarchy-select
+                [(ngModel)]="selectedSupplier"
+                [groups]="supplierGroups"
+                placeholder="Search supplier…">
+              </app-hierarchy-select>
             </div>
             <div class="field-group">
               <label>PAR <span class="required-star">*</span></label>
@@ -58,25 +58,17 @@
 
             <div class="field-group">
               <label>Site <span class="required-star">*</span></label>
-              <app-hierarchy-select
-                [(ngModel)]="selectedSite"
-                [groups]="siteGroups"
-                placeholder="Search site…">
+              <app-hierarchy-select [(ngModel)]="selectedSite" [groups]="siteGroups" placeholder="Search site…">
               </app-hierarchy-select>
             </div>
             <div class="field-group">
               <label>Team <span class="required-star">*</span></label>
-              <app-hierarchy-select
-                [(ngModel)]="selectedTeam"
-                [groups]="teamGroups"
-                placeholder="Search team…">
+              <app-hierarchy-select [(ngModel)]="selectedTeam" [groups]="teamGroups" placeholder="Search team…">
               </app-hierarchy-select>
             </div>
             <div class="field-group">
               <label>Currency <span class="required-star">*</span></label>
-              <app-hierarchy-select
-                [(ngModel)]="selectedCurrency"
-                [groups]="currencyGroups"
+              <app-hierarchy-select [(ngModel)]="selectedCurrency" [groups]="currencyGroups"
                 placeholder="Search currency…">
               </app-hierarchy-select>
             </div>
@@ -85,7 +77,8 @@
               <div class="toggle-container">
                 <span class="toggle-label" id="label-budgeted">Budgeted</span>
                 <label class="switch">
-                  <input type="checkbox" id="toggle-budgeted" checked />
+                  <input type="checkbox" id="toggle-budgeted" [(ngModel)]="isBudgeted"
+                    (ngModelChange)="onBudgetedChange($event)" />
                   <span class="slider"></span>
                 </label>
               </div>
@@ -123,8 +116,16 @@
             </div>
 
             <div class="field-group">
-              <label>Site Currency <span class="required-star">*</span></label>
-              <input type="text" placeholder="AUD" />
+              <label class="label-with-badge">
+                Site Currency
+                <span class="auto-calc-badge">Auto</span>
+              </label>
+              <div class="auto-calc-field">
+                <span class="auto-calc-value" [class.auto-calc-value--empty]="!siteCurrency">
+                  {{ siteCurrency || '—' }}
+                </span>
+                <span class="auto-calc-hint">Based on Site</span>
+              </div>
             </div>
 
             <div class="field-group">
@@ -143,7 +144,7 @@
         <!-- Itemisation and Accounting -->
         <div class="form-section itemisation-section">
           <h3 class="section-title">Itemisation and Accounting</h3>
-          
+
           <div class="line-items-container">
             <div class="form-grid cols-3 line-item-grid" *ngFor="let item of lineItems; let i = index">
               <!-- Separator and Header for additional line items -->
@@ -196,8 +197,8 @@
                 </select>
               </div>
               <div class="field-group">
-                <label>Speed Type</label>
-                <input type="text" placeholder="Speed Type" />
+                <label>Spend Layer</label>
+                <input type="text" placeholder="Spend Layer" />
               </div>
 
               <div class="field-group">
@@ -218,8 +219,8 @@
               </div>
 
               <div class="field-group">
-                <label>Invoice Line Data</label>
-                <input type="text" placeholder="Line Data" />
+                <label>Invoice Line Desc</label>
+                <input type="text" placeholder="Invoice Line Description" />
               </div>
               <div class="field-group col-span-2">
                 <label>Budget Line Desc</label>
@@ -227,7 +228,7 @@
               </div>
 
               <div class="field-group">
-                <label>Amount Line Currency</label>
+                <label>Amount Inv Currency</label>
                 <input type="number" placeholder="0.00" />
               </div>
               <div class="field-group">
@@ -300,15 +301,15 @@
         <div class="form-section recharge-v1-section">
           <h3 class="section-title">RechargeV1</h3>
           <div class="recharge-v1-scroll-container">
-            
+
             <!-- Outer Card -->
             <div class="recharge-v1-card">
               <span class="recharge-v1-card-label">Originator Site Currency</span>
-              
+
               <!-- Content flex row: Line Label + Nested Inner Card -->
               <div class="recharge-v1-content">
                 <div class="invoice-line-label">Invoice Line 1</div>
-                
+
                 <!-- Inner Rounded Border Card -->
                 <div class="recharge-v1-inner-card">
                   <table class="recharge-v1-table">
@@ -361,7 +362,7 @@
                   </table>
                 </div>
               </div>
-              
+
             </div>
 
           </div>
@@ -405,43 +406,79 @@
       <!-- ─── Right: Info + Preview ───────────────────────────── -->
       <div class="preview-column" [class.collapsed]="isPreviewCollapsed">
 
-        <!-- User and Processed Date -->
-        <div class="form-section">
-          <h3 class="section-title">User and Processed Date</h3>
-          <div class="form-grid cols-1">
-            <div class="field-group">
-              <label>User</label>
-              <input type="text" placeholder="Username" />
-            </div>
-            <div class="field-group">
-              <label>Processed Date</label>
-              <input type="date" />
-            </div>
-            <div class="field-group">
-              <label>Upload Date</label>
-              <input type="date" />
-            </div>
-          </div>
-        </div>
-
         <!-- Invoice Change History Button -->
         <button class="btn-change-history" (click)="isHistoryOpen = true">
-          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
-            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"/>
-            <polyline points="12 6 12 12 16 14"/>
+          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 6 12 12 16 14" />
           </svg>
           Invoice Change History
           <span class="history-count" *ngIf="changeHistory.length > 0">{{ changeHistory.length }}</span>
         </button>
 
+        <!-- User & Processed Date — Auto-stamp -->
+        <div class="form-section auto-stamp-section">
+          <div class="auto-stamp-header">
+            <h3 class="section-title">User &amp; Processed Date</h3>
+            <span class="system-badge">System</span>
+          </div>
+
+          <div class="stamp-row">
+            <span class="stamp-label">Last Modified</span>
+            <div class="stamp-chip">
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+              <span class="stamp-user">{{ autoStamp.user }}</span>
+              <span class="stamp-divider">|</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+              </svg>
+              <span class="stamp-date">{{ autoStamp.processedAt | date:'dd/MM/yyyy' }}</span>
+            </div>
+          </div>
+
+          <div class="stamp-row">
+            <span class="stamp-label">Uploaded</span>
+            <div class="stamp-chip stamp-chip--secondary">
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
+              <span class="stamp-user">{{ autoStamp.user }}</span>
+              <span class="stamp-divider">|</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+              </svg>
+              <span class="stamp-date">{{ autoStamp.uploadedAt | date:'dd/MM/yyyy' }}</span>
+            </div>
+          </div>
+
+          <p class="stamp-note">System-populated on save — not editable.</p>
+        </div>
+
         <!-- Invoice Document Preview / Upload -->
         <div class="form-section">
           <div class="section-header-row">
             <h3 class="section-title">Invoice Document</h3>
-            <button class="btn-card-toggle" (click)="togglePdfPreview()" *ngIf="uploadedFileName" [title]="isPdfPreviewCollapsed ? 'Expand Preview' : 'Collapse Preview'">
+            <button class="btn-card-toggle" (click)="togglePdfPreview()" *ngIf="uploadedFileName"
+              [title]="isPdfPreviewCollapsed ? 'Expand Preview' : 'Collapse Preview'">
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" [class.rotated]="isPdfPreviewCollapsed">
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                [class.rotated]="isPdfPreviewCollapsed">
                 <polyline points="4 14 10 14 10 20" />
                 <polyline points="20 10 14 10 14 4" />
                 <line x1="14" y1="10" x2="21" y2="3" />
@@ -479,7 +516,8 @@
                 <div class="file-info-row">
                   <div class="file-details">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                      stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="file-type-icon">
+                      stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+                      class="file-type-icon">
                       <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                       <polyline points="14 2 14 8 20 8" />
                     </svg>
@@ -513,10 +551,10 @@
 
       <div class="entry-meta">
         <div class="entry-meta-left">
-          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
-            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"/>
-            <polyline points="12 6 12 12 16 14"/>
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 6 12 12 16 14" />
           </svg>
           <span class="entry-timestamp">{{ entry.timestamp | date:'dd MMM yyyy, HH:mm' }}</span>
         </div>
@@ -527,11 +565,10 @@
         <div class="change-row" *ngFor="let change of entry.changes">
           <span class="change-field">{{ change.field }}</span>
           <span class="change-from">{{ change.from }}</span>
-          <svg class="change-arrow" xmlns="http://www.w3.org/2000/svg" width="12" height="12"
-            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-            stroke-linecap="round" stroke-linejoin="round">
-            <line x1="5" y1="12" x2="19" y2="12"/>
-            <polyline points="12 5 19 12 12 19"/>
+          <svg class="change-arrow" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12" />
+            <polyline points="12 5 19 12 12 19" />
           </svg>
           <span class="change-to">{{ change.to }}</span>
         </div>
@@ -542,10 +579,10 @@
 
   <ng-template #noHistory>
     <div class="history-empty-state">
-      <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24"
-        fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="10"/>
-        <polyline points="12 6 12 12 16 14"/>
+      <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10" />
+        <polyline points="12 6 12 12 16 14" />
       </svg>
       <p>No changes recorded yet.</p>
       <span>History will appear here once the invoice is saved and edited.</span>

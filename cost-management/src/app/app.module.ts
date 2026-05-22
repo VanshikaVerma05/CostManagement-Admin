@@ -13,6 +13,7 @@ import { ForecastComponent } from './components/forecast/forecast.component';
 import { DatePickerComponent } from './features/date-picker/date-picker.component';
 import { HierarchySelectComponent } from './features/hierarchy-select/hierarchy-select.component';
 import { ModalComponent } from './features/modal/modal.component';
+import { SnackbarComponent } from './features/snackbar/snackbar.component';
 
 @NgModule({
   declarations: [
@@ -25,7 +26,8 @@ import { ModalComponent } from './features/modal/modal.component';
     ForecastComponent,
     DatePickerComponent,
     HierarchySelectComponent,
-    ModalComponent
+    ModalComponent,
+    SnackbarComponent
   ],
   imports: [
     BrowserModule,

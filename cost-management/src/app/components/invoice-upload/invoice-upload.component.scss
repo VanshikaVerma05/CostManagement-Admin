@@ -11,6 +11,94 @@
   font-weight: 700;
 }
 
+/* ─── Auto-stamp section ──────────────────────────────────────── */
+.auto-stamp-section {
+  .auto-stamp-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+
+    .section-title { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+
+    .system-badge {
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      padding: 2px 7px;
+      transition: background-color var(--transition-speed), border-color var(--transition-speed), color var(--transition-speed);
+    }
+  }
+
+  .stamp-row {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-bottom: 10px;
+
+    .stamp-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      transition: color var(--transition-speed);
+    }
+  }
+
+  .stamp-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: color-mix(in srgb, var(--accent-color) 8%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent-color) 25%, transparent);
+    border-radius: 6px;
+    padding: 6px 12px;
+    width: 100%;
+
+    svg { flex-shrink: 0; color: var(--accent-color); }
+
+    .stamp-user {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-primary);
+      transition: color var(--transition-speed);
+    }
+
+    .stamp-divider {
+      font-size: 12px;
+      color: var(--border-color);
+      transition: color var(--transition-speed);
+    }
+
+    .stamp-date {
+      font-size: 12px;
+      color: var(--text-secondary);
+      transition: color var(--transition-speed);
+    }
+
+    &.stamp-chip--secondary {
+      background: var(--bg-primary);
+      border-color: var(--border-color);
+
+      svg { color: var(--text-muted); }
+    }
+  }
+
+  .stamp-note {
+    font-size: 10px;
+    color: var(--text-muted);
+    font-style: italic;
+    margin-top: 6px;
+    transition: color var(--transition-speed);
+  }
+}
+
 /* ─── Change History button ───────────────────────────────────── */
 .btn-change-history {
   display: flex;

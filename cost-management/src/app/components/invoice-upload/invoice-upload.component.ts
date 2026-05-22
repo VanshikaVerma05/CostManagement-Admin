@@ -1,6 +1,7 @@
 import { Component, OnDestroy } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { SelectGroup } from '../../features/hierarchy-select/hierarchy-select.component';
+import { SnackbarService } from '../../features/snackbar/snackbar.service';
 
 interface FieldChange { field: string; from: string; to: string; }
 interface ChangeRecord { timestamp: Date; user: string; changes: FieldChange[]; }
@@ -14,6 +15,34 @@ export class InvoiceUploadComponent implements OnDestroy {
   months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
   selectedSite = '';
+
+  selectedSupplier = '';
+
+  supplierGroups: SelectGroup[] = [
+    {
+      group: 'Cloud & Infrastructure',
+      items: [
+        { value: 'aws', label: 'AWS' },
+        { value: 'google-cloud', label: 'Google Cloud' },
+        { value: 'msft-azure', label: 'MSFT Azure' }
+      ]
+    },
+    {
+      group: 'Software & Licensing',
+      items: [
+        { value: 'microsoft', label: 'Microsoft' },
+        { value: 'oracle', label: 'Oracle' },
+        { value: 'sap', label: 'SAP' }
+      ]
+    },
+    {
+      group: 'Consulting & Services',
+      items: [
+        { value: 'deloitte', label: 'Deloitte' },
+        { value: 'accenture', label: 'Accenture' }
+      ]
+    }
+  ];
 
   selectedCurrency = '';
 
@@ -97,6 +126,12 @@ export class InvoiceUploadComponent implements OnDestroy {
   isPdfPreviewCollapsed = false;
   isHistoryOpen = false;
 
+  autoStamp = {
+    user: 'Devojeet Modak',
+    processedAt: new Date(),
+    uploadedAt: new Date()
+  };
+
   changeHistory: ChangeRecord[] = [
     {
       timestamp: new Date('2026-05-22T14:32:00'),
@@ -124,6 +159,16 @@ export class InvoiceUploadComponent implements OnDestroy {
     }
   ];
 
+  get siteCurrency(): string {
+    const map: Record<string, string> = {
+      'UK': 'GBP',
+      'the Netherlands': 'EUR',
+      'France': 'EUR',
+      'USA': 'USD'
+    };
+    return map[this.selectedSite] || '';
+  }
+
   get sortedHistory(): ChangeRecord[] {
     return [...this.changeHistory].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
   }
@@ -136,7 +181,18 @@ export class InvoiceUploadComponent implements OnDestroy {
     }
   ];
 
-  constructor(private sanitizer: DomSanitizer) {}
+  isBudgeted = true;
+
+  constructor(private sanitizer: DomSanitizer, private snackbar: SnackbarService) {}
+
+  onBudgetedChange(checked: boolean): void {
+    if (!checked) {
+      this.snackbar.show(
+        'Line flagged as unbudgeted — will appear separately in actuals & forecast tables.',
+        'warning'
+      );
+    }
+  }
 
   addNewLineItem(): void {
     this.lineItems.push({
