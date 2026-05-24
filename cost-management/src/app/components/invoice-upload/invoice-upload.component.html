@@ -41,9 +41,7 @@
           <div class="form-grid cols-3">
             <div class="field-group">
               <label>Supplier <span class="required-star">*</span></label>
-              <app-hierarchy-select
-                [(ngModel)]="selectedSupplier"
-                [groups]="supplierGroups"
+              <app-hierarchy-select [(ngModel)]="selectedSupplier" [groups]="supplierGroups"
                 placeholder="Search supplier…">
               </app-hierarchy-select>
             </div>
@@ -89,7 +87,7 @@
             </div>
             <div class="field-group">
               <label>Inv Amount <span class="required-star">*</span></label>
-              <input type="number" placeholder="0.00" />
+              <input type="number" min="0" step="0.01" placeholder="0.00" [(ngModel)]="invAmount" />
             </div>
 
             <div class="field-group toggle-field">
@@ -103,7 +101,7 @@
             </div>
             <div class="field-group">
               <label>Exchange Rates</label>
-              <input type="text" placeholder="1.00" />
+              <input type="number" min="0" step="0.0001" placeholder="1.00" [(ngModel)]="exchangeRate" />
             </div>
             <div class="field-group">
               <label>Inv Number <span class="required-star">*</span></label>
@@ -134,7 +132,9 @@
                 <span class="auto-calc-badge">Auto</span>
               </label>
               <div class="auto-calc-field">
-                <span class="auto-calc-value">—</span>
+                <span class="auto-calc-value" [class.auto-calc-value--empty]="invAmountSiteCurrency === null">
+                  {{ invAmountSiteCurrency !== null ? (invAmountSiteCurrency | number:'1.2-2') : '—' }}
+                </span>
                 <span class="auto-calc-hint">Inv Amount × FX Rate</span>
               </div>
             </div>
@@ -162,10 +162,7 @@
 
               <div class="field-group">
                 <label>Account</label>
-                <app-hierarchy-select
-                  [(ngModel)]="item.account"
-                  [groups]="accountGroups"
-                  placeholder="Search account…">
+                <app-hierarchy-select [(ngModel)]="item.account" [groups]="accountGroups" placeholder="Search account…">
                 </app-hierarchy-select>
               </div>
               <div class="field-group">
@@ -174,19 +171,14 @@
               </div>
               <div class="field-group">
                 <label>Period End</label>
-                <app-date-picker
-                  [(ngModel)]="item.periodEnd"
-                  (ngModelChange)="onPeriodEndChange(item, $event)">
+                <app-date-picker [(ngModel)]="item.periodEnd" (ngModelChange)="onPeriodEndChange(item, $event)">
                 </app-date-picker>
               </div>
 
               <div class="field-group">
                 <label>Internal Order <span class="required-star">*</span></label>
-                <app-hierarchy-select
-                  [(ngModel)]="item.internalOrder"
-                  [searchFn]="searchInternalOrders"
-                  [bindValue]="'value'"
-                  placeholder="Search SAP Internal Orders…">
+                <app-hierarchy-select [(ngModel)]="item.internalOrder" [searchFn]="searchInternalOrders"
+                  [bindValue]="'value'" placeholder="Search SAP Internal Orders…">
                 </app-hierarchy-select>
               </div>
               <div class="field-group">
@@ -214,23 +206,28 @@
                   <option>Oracle</option>
                 </select>
               </div>
-              <div class="field-group">
-                <label>Level</label>
-                <input type="text" placeholder="Level" />
-              </div>
+              <div class="field-group"></div>
 
+              <div class="field-group">
+                <label class="label-with-badge">
+                  Line
+                  <span class="auto-calc-badge">Auto</span>
+                </label>
+                <input type="number" min="1" step="1" placeholder="1"
+                  [(ngModel)]="item.line" (ngModelChange)="onLineNumberChange(item)" />
+              </div>
               <div class="field-group">
                 <label>Invoice Line Desc</label>
                 <input type="text" placeholder="Invoice Line Description" />
               </div>
-              <div class="field-group col-span-2">
+              <div class="field-group">
                 <label>Budget Line Desc</label>
                 <input type="text" placeholder="Budget Line Description" />
               </div>
 
               <div class="field-group">
-                <label>Amount Inv Currency</label>
-                <input type="number" placeholder="0.00" />
+                <label>Amount Inv Currency <span class="required-star">*</span></label>
+                <input type="number" min="0" step="0.01" placeholder="0.00" [(ngModel)]="item.amountCurrency" />
               </div>
               <div class="field-group">
                 <label>Direct Recharge To</label>
@@ -247,8 +244,16 @@
               </div>
 
               <div class="field-group">
-                <label>Amount Site Currency</label>
-                <input type="number" placeholder="0.00" />
+                <label class="label-with-badge">
+                  Amount Site Currency
+                  <span class="auto-calc-badge">Auto</span>
+                </label>
+                <div class="auto-calc-field">
+                  <span class="auto-calc-value" [class.auto-calc-value--empty]="siteCurrencyAmount(item) === null">
+                    {{ siteCurrencyAmount(item) !== null ? (siteCurrencyAmount(item) | number:'1.2-2') : '—' }}
+                  </span>
+                  <span class="auto-calc-hint">Amount (Inv Ccy) × FX Rate</span>
+                </div>
               </div>
             </div>
           </div>

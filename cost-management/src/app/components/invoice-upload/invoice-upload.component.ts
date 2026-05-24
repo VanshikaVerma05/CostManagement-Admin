@@ -206,20 +206,54 @@ export class InvoiceUploadComponent implements OnDestroy {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   }
 
-  private blankLineItem() {
+  private blankLineItem(line: number) {
     return {
+      line,
       account: '',
       periodStart: InvoiceUploadComponent.defaultPeriodStart(),
       periodEnd: InvoiceUploadComponent.defaultPeriodEnd(),
       internalOrder: '', spendType: '', speedType: '',
-      category: '', system: '', level: '', lineData: '', description: '',
+      category: '', system: '', lineData: '', description: '',
       amountCurrency: null, rechargeTo: '', rechargePercent: null, amountSiteCurrency: null
     };
   }
 
-  lineItems = [this.blankLineItem()];
+  /** Next line number for this invoice: one above the highest existing line. */
+  private nextLineNumber(): number {
+    if (this.lineItems.length === 0) return 1;
+    return Math.max(...this.lineItems.map(i => Number(i.line) || 0)) + 1;
+  }
+
+  // First line of every invoice starts at 1; numbering is scoped to this invoice only.
+  lineItems = [this.blankLineItem(1)];
 
   isBudgeted = true;
+
+  /** Header-level FX rate (General section) applied to every line's amount. */
+  exchangeRate: number | null = 1;
+
+  /** Header invoice amount in the original invoice currency. */
+  invAmount: number | null = null;
+
+  /** Read-only header conversion: Inv Amount × FX Rate. Null until both present. */
+  get invAmountSiteCurrency(): number | null {
+    const amount = Number(this.invAmount);
+    const fx = Number(this.exchangeRate);
+    if (this.invAmount == null || isNaN(amount) || isNaN(fx)) return null;
+    return amount * fx;
+  }
+
+  /**
+   * Read-only line conversion: Amount (Inv Currency) × Header FX Rate.
+   * Returns null until both inputs are present, so the field shows "—".
+   * Recomputes automatically whenever the amount or the FX rate changes.
+   */
+  siteCurrencyAmount(item: ReturnType<InvoiceUploadComponent['blankLineItem']>): number | null {
+    const amount = Number(item.amountCurrency);
+    const fx = Number(this.exchangeRate);
+    if (item.amountCurrency == null || isNaN(amount) || isNaN(fx)) return null;
+    return amount * fx;
+  }
 
   /**
    * Live SAP Internal Order lookup, passed to the hierarchy-select. Arrow fn so
@@ -244,7 +278,15 @@ export class InvoiceUploadComponent implements OnDestroy {
   }
 
   addNewLineItem(): void {
-    this.lineItems.push(this.blankLineItem());
+    this.lineItems.push(this.blankLineItem(this.nextLineNumber()));
+  }
+
+  /** Warn if a user-overridden line number collides with another line in this invoice. */
+  onLineNumberChange(item: ReturnType<InvoiceUploadComponent['blankLineItem']>): void {
+    const duplicate = this.lineItems.some(other => other !== item && Number(other.line) === Number(item.line));
+    if (duplicate) {
+      this.snackbar.show(`Line ${item.line} is already used on this invoice — line numbers must be unique.`, 'warning');
+    }
   }
 
   onPeriodEndChange(item: ReturnType<InvoiceUploadComponent['blankLineItem']>, endDate: string): void {
