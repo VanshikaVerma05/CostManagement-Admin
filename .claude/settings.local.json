@@ -14,7 +14,8 @@
       "Bash(Get-ChildItem *)",
       "PowerShell(head *)",
       "Bash(npx ng *)",
-      "Bash(Select-Object -First 5 FullName)"
+      "Bash(Select-Object -First 5 FullName)",
+      "Bash(npx tsc *)"
     ]
   }
 }

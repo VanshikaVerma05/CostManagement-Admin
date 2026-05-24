@@ -1,5 +1,7 @@
-import { Component, forwardRef, Input, HostListener, ElementRef, OnChanges } from '@angular/core';
+import { Component, forwardRef, Input, HostListener, ElementRef, OnDestroy } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { Observable, Subject, Subscription } from 'rxjs';
+import { debounceTime, switchMap, tap } from 'rxjs/operators';
 
 export interface SelectOption {
   value: string;
@@ -23,20 +25,58 @@ export interface SelectGroup {
     }
   ]
 })
-export class HierarchySelectComponent implements ControlValueAccessor {
+export class HierarchySelectComponent implements ControlValueAccessor, OnDestroy {
+  /** Static catalogue — used when no `searchFn` is provided (local filtering). */
   @Input() groups: SelectGroup[] = [];
   @Input() placeholder = 'Search…';
 
+  /**
+   * Remote lookup. When provided, the component switches to async mode:
+   * each keystroke (debounced) calls this and the returned groups populate the
+   * dropdown — e.g. a live SAP Internal Order search.
+   */
+  @Input() searchFn?: (query: string) => Observable<SelectGroup[]>;
+
+  /** What to emit on select: the option `label` (default) or its `value` (code). */
+  @Input() bindValue: 'label' | 'value' = 'label';
+
+  /** Minimum characters before a remote search fires. */
+  @Input() minChars = 1;
+
   searchText = '';
   isOpen = false;
+  loading = false;
+  private remoteGroups: SelectGroup[] = [];
   private selectedLabel = '';
+  private selectedValue = '';
+
+  private query$ = new Subject<string>();
+  private sub?: Subscription;
 
   private onChange: (value: string) => void = () => {};
   private onTouched: () => void = () => {};
 
-  constructor(private el: ElementRef) {}
+  constructor(private el: ElementRef) {
+    this.sub = this.query$
+      .pipe(
+        debounceTime(250),
+        tap(() => (this.loading = true)),
+        switchMap(q => this.searchFn!(q))
+      )
+      .subscribe(groups => {
+        this.remoteGroups = groups;
+        this.loading = false;
+      });
+  }
+
+  get isAsync(): boolean {
+    return !!this.searchFn;
+  }
 
   get filteredGroups(): SelectGroup[] {
+    // Async mode: the server already returned the matching groups.
+    if (this.isAsync) return this.remoteGroups;
+
     const q = this.searchText.trim().toLowerCase();
     if (!q) return this.groups;
     return this.groups
@@ -45,33 +85,59 @@ export class HierarchySelectComponent implements ControlValueAccessor {
   }
 
   get hasNoResults(): boolean {
-    return this.isOpen && this.filteredGroups.length === 0;
+    if (!this.isOpen || this.loading) return false;
+    if (this.isAsync && this.searchText.trim().length < this.minChars) return false;
+    return this.filteredGroups.length === 0;
+  }
+
+  /** Async mode only: prompt shown before the user has typed enough to search. */
+  get showTypeHint(): boolean {
+    return this.isOpen && this.isAsync && this.searchText.trim().length < this.minChars && !this.loading;
   }
 
   onFocus(): void {
     this.searchText = '';
+    if (this.isAsync) this.remoteGroups = [];
     this.isOpen = true;
     this.onTouched();
   }
 
   onInput(): void {
     this.isOpen = true;
+    if (this.isAsync) {
+      const q = this.searchText.trim();
+      if (q.length >= this.minChars) {
+        this.query$.next(q);
+      } else {
+        this.remoteGroups = [];
+        this.loading = false;
+      }
+    }
   }
 
   select(item: SelectOption): void {
     this.selectedLabel = item.label;
+    this.selectedValue = item.value;
     this.searchText = item.label;
-    this.onChange(item.label);
+    this.onChange(this.bindValue === 'value' ? item.value : item.label);
     this.isOpen = false;
   }
 
   isSelected(item: SelectOption): boolean {
-    return item.label === this.selectedLabel;
+    return this.bindValue === 'value'
+      ? item.value === this.selectedValue
+      : item.label === this.selectedLabel;
   }
 
   writeValue(value: string): void {
-    this.selectedLabel = value || '';
-    this.searchText = value || '';
+    if (this.bindValue === 'value') {
+      this.selectedValue = value || '';
+      // Only the code is stored, so display the code until the user reselects.
+      this.selectedLabel = value || '';
+    } else {
+      this.selectedLabel = value || '';
+    }
+    this.searchText = this.selectedLabel;
   }
 
   registerOnChange(fn: (value: string) => void): void { this.onChange = fn; }
@@ -83,5 +149,9 @@ export class HierarchySelectComponent implements ControlValueAccessor {
       this.searchText = this.selectedLabel;
       this.isOpen = false;
     }
+  }
+
+  ngOnDestroy(): void {
+    this.sub?.unsubscribe();
   }
 }

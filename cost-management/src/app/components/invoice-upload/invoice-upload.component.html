@@ -162,31 +162,32 @@
 
               <div class="field-group">
                 <label>Account</label>
-                <select>
-                  <option value="">Select Account</option>
-                  <option>Account 001 - Software Expense</option>
-                  <option>Account 002 - Hardware Expense</option>
-                  <option>Account 003 - Consulting Services</option>
-                  <option>Account 004 - Office Supplies</option>
-                </select>
+                <app-hierarchy-select
+                  [(ngModel)]="item.account"
+                  [groups]="accountGroups"
+                  placeholder="Search account…">
+                </app-hierarchy-select>
               </div>
               <div class="field-group">
                 <label>Period Start</label>
-                <input type="date" />
+                <app-date-picker [(ngModel)]="item.periodStart"></app-date-picker>
               </div>
               <div class="field-group">
                 <label>Period End</label>
-                <input type="date" />
+                <app-date-picker
+                  [(ngModel)]="item.periodEnd"
+                  (ngModelChange)="onPeriodEndChange(item, $event)">
+                </app-date-picker>
               </div>
 
               <div class="field-group">
-                <label>Internal Order</label>
-                <select>
-                  <option value="">Select Internal Order</option>
-                  <option>IO-98765 - Digital Transformation</option>
-                  <option>IO-43210 - Infrastructure Upgrade</option>
-                  <option>IO-11223 - Finance Automation</option>
-                </select>
+                <label>Internal Order <span class="required-star">*</span></label>
+                <app-hierarchy-select
+                  [(ngModel)]="item.internalOrder"
+                  [searchFn]="searchInternalOrders"
+                  [bindValue]="'value'"
+                  placeholder="Search SAP Internal Orders…">
+                </app-hierarchy-select>
               </div>
               <div class="field-group">
                 <label>Spend Type</label>

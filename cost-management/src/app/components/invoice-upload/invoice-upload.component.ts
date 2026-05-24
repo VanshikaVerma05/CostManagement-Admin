@@ -1,7 +1,9 @@
 import { Component, OnDestroy } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { Observable } from 'rxjs';
 import { SelectGroup } from '../../features/hierarchy-select/hierarchy-select.component';
 import { SnackbarService } from '../../features/snackbar/snackbar.service';
+import { InternalOrderService } from '../../services/internal-order.service';
 
 interface FieldChange { field: string; from: string; to: string; }
 interface ChangeRecord { timestamp: Date; user: string; changes: FieldChange[]; }
@@ -15,6 +17,27 @@ export class InvoiceUploadComponent implements OnDestroy {
   months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
   selectedSite = '';
+
+  accountGroups: SelectGroup[] = [
+    {
+      group: 'OpEx',
+      items: [
+        { value: 'gl-6100', label: 'GL 6100 – Software Licences' },
+        { value: 'gl-6200', label: 'GL 6200 – Cloud Services' },
+        { value: 'gl-6300', label: 'GL 6300 – Professional Services' },
+        { value: 'gl-6400', label: 'GL 6400 – Maintenance & Support' },
+        { value: 'gl-6500', label: 'GL 6500 – Telecoms & Connectivity' }
+      ]
+    },
+    {
+      group: 'CapEx',
+      items: [
+        { value: 'gl-7100', label: 'GL 7100 – Hardware' },
+        { value: 'gl-7200', label: 'GL 7200 – Infrastructure Investment' },
+        { value: 'gl-7300', label: 'GL 7300 – Software Development' }
+      ]
+    }
+  ];
 
   selectedSupplier = '';
 
@@ -173,17 +196,43 @@ export class InvoiceUploadComponent implements OnDestroy {
     return [...this.changeHistory].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
   }
 
-  lineItems = [
-    {
-      account: '', periodStart: '', periodEnd: '', internalOrder: '', spendType: '', speedType: '',
-      category: '', system: '', level: '', lineData: '', description: '', amountCurrency: null,
-      rechargeTo: '', rechargePercent: null, amountSiteCurrency: null
-    }
-  ];
+  private static defaultPeriodStart(): string {
+    const d = new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
+  }
+
+  private static defaultPeriodEnd(): string {
+    const d = new Date(new Date().getFullYear(), new Date().getMonth(), 0);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+
+  private blankLineItem() {
+    return {
+      account: '',
+      periodStart: InvoiceUploadComponent.defaultPeriodStart(),
+      periodEnd: InvoiceUploadComponent.defaultPeriodEnd(),
+      internalOrder: '', spendType: '', speedType: '',
+      category: '', system: '', level: '', lineData: '', description: '',
+      amountCurrency: null, rechargeTo: '', rechargePercent: null, amountSiteCurrency: null
+    };
+  }
+
+  lineItems = [this.blankLineItem()];
 
   isBudgeted = true;
 
-  constructor(private sanitizer: DomSanitizer, private snackbar: SnackbarService) {}
+  /**
+   * Live SAP Internal Order lookup, passed to the hierarchy-select. Arrow fn so
+   * `this` stays bound when the child invokes it on each keystroke.
+   */
+  searchInternalOrders = (query: string): Observable<SelectGroup[]> =>
+    this.ioService.search(query);
+
+  constructor(
+    private sanitizer: DomSanitizer,
+    private snackbar: SnackbarService,
+    private ioService: InternalOrderService
+  ) {}
 
   onBudgetedChange(checked: boolean): void {
     if (!checked) {
@@ -195,11 +244,13 @@ export class InvoiceUploadComponent implements OnDestroy {
   }
 
   addNewLineItem(): void {
-    this.lineItems.push({
-      account: '', periodStart: '', periodEnd: '', internalOrder: '', spendType: '', speedType: '',
-      category: '', system: '', level: '', lineData: '', description: '', amountCurrency: null,
-      rechargeTo: '', rechargePercent: null, amountSiteCurrency: null
-    });
+    this.lineItems.push(this.blankLineItem());
+  }
+
+  onPeriodEndChange(item: ReturnType<InvoiceUploadComponent['blankLineItem']>, endDate: string): void {
+    if (endDate && item.periodStart && endDate < item.periodStart) {
+      this.snackbar.show('Period End cannot be before Period Start.', 'warning');
+    }
   }
 
   removeLineItem(index: number): void {

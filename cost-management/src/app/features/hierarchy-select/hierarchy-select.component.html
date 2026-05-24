@@ -21,6 +21,16 @@
   <!-- Dropdown -->
   <div class="hs-dropdown" *ngIf="isOpen" (click)="$event.stopPropagation()">
 
+    <!-- Async: prompt before enough characters typed -->
+    <div class="hs-hint" *ngIf="showTypeHint">Type to search SAP…</div>
+
+    <!-- Async: in-flight SAP lookup -->
+    <div class="hs-loading" *ngIf="loading">
+      <span class="hs-spinner"></span>
+      Searching SAP…
+    </div>
+
+    <ng-container *ngIf="!loading">
     <ng-container *ngFor="let group of filteredGroups">
       <div class="hs-group-header">{{ group.group }}</div>
       <div
@@ -39,6 +49,7 @@
         <span class="hs-option-dot hs-option-dot--empty" *ngIf="!isSelected(item)"></span>
         {{ item.label }}
       </div>
+    </ng-container>
     </ng-container>
 
     <div class="hs-empty" *ngIf="hasNoResults">No results for "{{ searchText }}"</div>
