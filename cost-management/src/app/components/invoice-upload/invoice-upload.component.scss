@@ -613,6 +613,15 @@
     &:hover .toggle-label {
       color: var(--text-primary);
     }
+
+    &.toggle-container--disabled {
+      opacity: 0.5;
+
+      .toggle-label,
+      .switch {
+        cursor: not-allowed;
+      }
+    }
   }
 }
 
@@ -1141,6 +1150,20 @@
   background: var(--bg-secondary);
 }
 
+.recharge-v1-empty {
+  padding: 22px 16px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-muted);
+  font-style: italic;
+  transition: color var(--transition-speed);
+
+  strong {
+    color: var(--text-secondary);
+    font-style: normal;
+  }
+}
+
 .recharge-v1-card-label {
   position: absolute;
   top: -10px;
@@ -1152,6 +1175,19 @@
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.recharge-line-badge {
+  background: linear-gradient(135deg, #a855f7, #d946ef);
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
 }
 
 .recharge-v1-content {

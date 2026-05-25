@@ -196,7 +196,10 @@
 
               <div class="field-group">
                 <label>Category</label>
-                <input type="text" placeholder="Category" />
+                <select [(ngModel)]="item.category">
+                  <option value="">Select Category</option>
+                  <option *ngFor="let cat of spendCategories" [value]="cat">{{ cat }}</option>
+                </select>
               </div>
               <div class="field-group">
                 <label>System</label>
@@ -231,16 +234,23 @@
               </div>
               <div class="field-group">
                 <label>Direct Recharge To</label>
-                <select>
-                  <option value="">Select Recharge To</option>
-                  <option>Department A</option>
-                  <option>Department B</option>
-                  <option>Department C</option>
-                </select>
+                <app-hierarchy-select
+                  [(ngModel)]="item.rechargeTo"
+                  [groups]="siteGroups"
+                  [disabled]="item.recharge"
+                  (ngModelChange)="onDirectRechargeChange(item)"
+                  placeholder="Search site…">
+                </app-hierarchy-select>
               </div>
-              <div class="field-group">
-                <label>Recharge %</label>
-                <input type="number" placeholder="0" min="0" max="100" />
+              <div class="field-group toggle-field">
+                <div class="toggle-container">
+                  <span class="toggle-label" [id]="'label-recharge-' + i">Recharge %</span>
+                  <label class="switch">
+                    <input type="checkbox" [id]="'toggle-recharge-' + i" [(ngModel)]="item.recharge"
+                      (ngModelChange)="onRechargeToggleChange(item)" />
+                    <span class="slider"></span>
+                  </label>
+                </div>
               </div>
 
               <div class="field-group">
@@ -262,7 +272,7 @@
           </div>
         </div>
 
-        <!-- Recharge -->
+        <!-- ─── Legacy Recharge section — superseded by the per-line Recharge panels below. Kept for reference. ───
         <div class="form-section">
           <h3 class="section-title">Recharge</h3>
           <div class="form-grid cols-3">
@@ -302,19 +312,23 @@
             </div>
           </div>
         </div>
+        ─── end legacy Recharge section ─── -->
 
-        <!-- RechargeV1 -->
+        <!-- Recharge — one independent panel per line with Recharge % ON -->
         <div class="form-section recharge-v1-section">
-          <h3 class="section-title">RechargeV1</h3>
+          <h3 class="section-title">Recharge</h3>
           <div class="recharge-v1-scroll-container">
 
-            <!-- Outer Card -->
-            <div class="recharge-v1-card">
-              <span class="recharge-v1-card-label">Originator Site Currency</span>
+            <!-- Outer Card — rendered per recharge-flagged line item -->
+            <div class="recharge-v1-card" *ngFor="let rline of rechargeLines">
+              <span class="recharge-v1-card-label">
+                <span class="recharge-line-badge">Line {{ rline.line }}</span>
+                Originator Site Currency
+              </span>
 
               <!-- Content flex row: Line Label + Nested Inner Card -->
               <div class="recharge-v1-content">
-                <div class="invoice-line-label">Invoice Line 1</div>
+                <div class="invoice-line-label">Invoice Line {{ rline.line }}</div>
 
                 <!-- Inner Rounded Border Card -->
                 <div class="recharge-v1-inner-card">
@@ -369,6 +383,11 @@
                 </div>
               </div>
 
+            </div>
+
+            <!-- Empty state — no lines flagged for Recharge % -->
+            <div class="recharge-v1-empty" *ngIf="rechargeLines.length === 0">
+              Toggle <strong>Recharge %</strong> on a line item above to configure its recharge panel.
             </div>
 
           </div>

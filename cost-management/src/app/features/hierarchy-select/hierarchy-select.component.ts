@@ -43,9 +43,14 @@ export class HierarchySelectComponent implements ControlValueAccessor, OnDestroy
   /** Minimum characters before a remote search fires. */
   @Input() minChars = 1;
 
+  /** When true the control is read-only and cannot be opened. */
+  @Input() disabled = false;
+
   searchText = '';
   isOpen = false;
   loading = false;
+  /** Inline coords for the fixed-position dropdown so it escapes any scroll/overflow ancestor. */
+  dropdownStyle: { [key: string]: string } = {};
   private remoteGroups: SelectGroup[] = [];
   private selectedLabel = '';
   private selectedValue = '';
@@ -53,8 +58,8 @@ export class HierarchySelectComponent implements ControlValueAccessor, OnDestroy
   private query$ = new Subject<string>();
   private sub?: Subscription;
 
-  private onChange: (value: string) => void = () => {};
-  private onTouched: () => void = () => {};
+  private onChange: (value: string) => void = () => { };
+  private onTouched: () => void = () => { };
 
   constructor(private el: ElementRef) {
     this.sub = this.query$
@@ -67,6 +72,10 @@ export class HierarchySelectComponent implements ControlValueAccessor, OnDestroy
         this.remoteGroups = groups;
         this.loading = false;
       });
+
+    // Capture phase so scrolling inside any ancestor (not just window) repositions the dropdown.
+    window.addEventListener('scroll', this.onViewportChange, true);
+    window.addEventListener('resize', this.onViewportChange);
   }
 
   get isAsync(): boolean {
@@ -96,13 +105,38 @@ export class HierarchySelectComponent implements ControlValueAccessor, OnDestroy
   }
 
   onFocus(): void {
+    if (this.disabled) return;
     this.searchText = '';
     if (this.isAsync) this.remoteGroups = [];
     this.isOpen = true;
+    this.updatePosition();
     this.onTouched();
   }
 
+  /**
+   * Position the fixed dropdown against the input's viewport rect, flipping above
+   * when there isn't room below. `position: fixed` lets it render outside any
+   * `overflow` ancestor (e.g. the scrollable line-items container) without clipping.
+   */
+  private updatePosition(): void {
+    const wrap = this.el.nativeElement.querySelector('.hs-input-wrap') as HTMLElement | null;
+    if (!wrap) return;
+    const r = wrap.getBoundingClientRect();
+    const gap = 4;
+    const estHeight = 140; // matches max-height + padding
+    const openUp = r.bottom + estHeight > window.innerHeight && r.top > estHeight;
+    this.dropdownStyle = openUp
+      ? { left: `${r.left}px`, width: `${r.width}px`, bottom: `${window.innerHeight - r.top + gap}px` }
+      : { left: `${r.left}px`, width: `${r.width}px`, top: `${r.bottom + gap}px` };
+  }
+
+  /** Reposition (or close) while open if the page or any container scrolls/resizes. */
+  private onViewportChange = (): void => {
+    if (this.isOpen) this.updatePosition();
+  };
+
   onInput(): void {
+    if (this.disabled) return;
     this.isOpen = true;
     if (this.isAsync) {
       const q = this.searchText.trim();
@@ -153,5 +187,7 @@ export class HierarchySelectComponent implements ControlValueAccessor, OnDestroy
 
   ngOnDestroy(): void {
     this.sub?.unsubscribe();
+    window.removeEventListener('scroll', this.onViewportChange, true);
+    window.removeEventListener('resize', this.onViewportChange);
   }
 }

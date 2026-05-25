@@ -1,11 +1,12 @@
 <div class="hs-wrapper">
 
   <!-- Input trigger -->
-  <div class="hs-input-wrap" [class.open]="isOpen">
+  <div class="hs-input-wrap" [class.open]="isOpen" [class.disabled]="disabled">
     <input
       class="hs-input"
       [placeholder]="placeholder"
       [(ngModel)]="searchText"
+      [disabled]="disabled"
       (focus)="onFocus()"
       (input)="onInput()"
       autocomplete="off"
@@ -19,7 +20,7 @@
   </div>
 
   <!-- Dropdown -->
-  <div class="hs-dropdown" *ngIf="isOpen" (click)="$event.stopPropagation()">
+  <div class="hs-dropdown" *ngIf="isOpen" [ngStyle]="dropdownStyle" (click)="$event.stopPropagation()">
 
     <!-- Async: prompt before enough characters typed -->
     <div class="hs-hint" *ngIf="showTypeHint">Type to search SAP…</div>

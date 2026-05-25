@@ -39,6 +39,16 @@ export class InvoiceUploadComponent implements OnDestroy {
     }
   ];
 
+  /** Standard spend categories — consistent across all four EISS teams. */
+  spendCategories = [
+    'IT Subscriptions',
+    'IT Outsource Services',
+    'Software Maintenance',
+    'Software Licensing',
+    'IT Consultancy',
+    'Project Costs'
+  ];
+
   selectedSupplier = '';
 
   supplierGroups: SelectGroup[] = [
@@ -214,7 +224,7 @@ export class InvoiceUploadComponent implements OnDestroy {
       periodEnd: InvoiceUploadComponent.defaultPeriodEnd(),
       internalOrder: '', spendType: '', speedType: '',
       category: '', system: '', lineData: '', description: '',
-      amountCurrency: null, rechargeTo: '', rechargePercent: null, amountSiteCurrency: null
+      amountCurrency: null, rechargeTo: '', recharge: false, amountSiteCurrency: null
     };
   }
 
@@ -279,6 +289,29 @@ export class InvoiceUploadComponent implements OnDestroy {
 
   addNewLineItem(): void {
     this.lineItems.push(this.blankLineItem(this.nextLineNumber()));
+  }
+
+  /**
+   * Recharge % and Direct Recharge To are mutually exclusive *on the same line*.
+   * Turning the toggle on clears any Direct Recharge target for that line.
+   * (Different lines of the same invoice may each use either method.)
+   */
+  onRechargeToggleChange(item: ReturnType<InvoiceUploadComponent['blankLineItem']>): void {
+    if (item.recharge) {
+      item.rechargeTo = '';
+    }
+  }
+
+  /** Selecting a Direct Recharge target switches off Recharge % for that line. */
+  onDirectRechargeChange(item: ReturnType<InvoiceUploadComponent['blankLineItem']>): void {
+    if (item.rechargeTo) {
+      item.recharge = false;
+    }
+  }
+
+  /** Lines flagged with Recharge % ON — each gets its own independent recharge panel. */
+  get rechargeLines(): ReturnType<InvoiceUploadComponent['blankLineItem']>[] {
+    return this.lineItems.filter(i => i.recharge);
   }
 
   /** Warn if a user-overridden line number collides with another line in this invoice. */
