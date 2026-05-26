@@ -1228,17 +1228,29 @@
     text-align: left;
   }
 
+  /* Left breathing room — only on data rows, not the colspan empty-state cell */
+  th:first-child,
+  .cell-chk {
+    padding-left: 80px;
+  }
+
+  th.col-amount,
+  td.cell-amount {
+    padding-left: 80px;
+  }
+
   /* Column widths matching image proportions */
   .col-chk {
     width: 120px;
   }
 
   .col-amount {
-    width: 100px;
+    /* 80px shift + ~100px input keeps the input the same size as the % column */
+    width: 180px;
   }
 
   .col-pct {
-    width: 80px;
+    width: 100px;
   }
 
   .col-months {
@@ -1338,6 +1350,106 @@
   .chk-text {
     font-size: 12px;
     color: var(--text-secondary);
+    white-space: nowrap;
+  }
+}
+
+/* Recharge period range (mirrors the line item's Period Start → End) */
+.recharge-period {
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  text-transform: none;
+  letter-spacing: normal;
+
+  &--empty {
+    color: var(--text-muted);
+    font-style: italic;
+  }
+}
+
+/* Auto-derived value (the field the user didn't type into) */
+.recharge-cell-input.recharge-derived {
+  color: var(--text-muted);
+  font-style: italic;
+  background: var(--bg-hover);
+}
+
+/* ─── Recharge: empty state (no sites selected) ─────────────────── */
+.recharge-empty-state {
+  padding: 18px 14px !important;
+  text-align: center;
+  font-size: 12px;
+  font-style: italic;
+  color: var(--text-muted);
+  background: var(--bg-primary);
+  border: 1px dashed var(--border-color);
+  border-radius: 8px;
+  transition: color var(--transition-speed), background-color var(--transition-speed), border-color var(--transition-speed);
+
+  strong {
+    color: var(--accent-color);
+    font-style: normal;
+  }
+}
+
+/* ─── Recharge: add-site control + inline site dropdown ─────────── */
+.recharge-add-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  margin-top: 10px;
+
+  .recharge-action-link {
+    font-size: 12px;
+    color: var(--accent-color);
+    text-decoration: underline;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+
+    &:hover { opacity: 0.8; }
+  }
+
+  .recharge-site-picker-inline {
+    width: 280px;
+    max-width: 100%;
+  }
+}
+
+/* ─── Recharge: allocation total ────────────────────────────────── */
+.recharge-total-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-color);
+  font-size: 12px;
+
+  .recharge-total-label {
+    color: var(--text-secondary);
+    font-weight: 600;
+  }
+
+  .recharge-total-value {
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .recharge-total-flag {
+    font-size: 11px;
+    font-style: italic;
+  }
+
+  &.balanced .recharge-total-value {
+    color: #2f9e44; /* green — balances to 100% */
+  }
+
+  &.unbalanced .recharge-total-value,
+  &.unbalanced .recharge-total-flag {
+    color: #d94646; /* red — does not balance */
   }
 }
 

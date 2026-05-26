@@ -217,7 +217,17 @@
                       </select>
                     </td>
                     <td class="lc-act">
-                      <button class="btn-del" (click)="removeRow(row.id)" title="Remove">&#x2715;</button>
+                      <div class="lc-act-stack">
+                        <button class="btn-del" (click)="removeRow(row.id)" title="Remove">&#x2715;</button>
+                        <button class="btn-comment" (click)="openComments(row)" title="Monthly comments">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"
+                            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                          </svg>
+                          <span class="comment-badge" *ngIf="commentCount(row) > 0">{{ commentCount(row) }}</span>
+                        </button>
+                      </div>
                     </td>
                   </ng-container>
 
@@ -362,3 +372,26 @@
 
   </div><!-- /scroll-area -->
 </div>
+
+<!-- ─── Monthly Comments Modal ─────────────────────────────────────── -->
+<app-modal [title]="commentModalTitle" [isOpen]="commentModalOpen" (closed)="closeComments()">
+  <div class="comment-modal-body">
+    <p class="comment-modal-hint">
+      Comments are saved per month for <strong>{{ currentYear }}</strong>. Switch the year on the toolbar to keep a
+      separate set per year.
+    </p>
+
+    <div class="comment-grid">
+      <div class="comment-item" *ngFor="let m of months; let i = index; trackBy: trackByIndex">
+        <label class="comment-month">{{ m }} {{ currentYear }}</label>
+        <textarea class="comment-input" rows="2" [(ngModel)]="commentDraft[i]"
+          placeholder="Add a comment…"></textarea>
+      </div>
+    </div>
+
+    <div class="comment-modal-actions">
+      <button class="btn-cancel" (click)="closeComments()">Cancel</button>
+      <button class="btn-save" (click)="saveComments()">Save Comments</button>
+    </div>
+  </div>
+</app-modal>

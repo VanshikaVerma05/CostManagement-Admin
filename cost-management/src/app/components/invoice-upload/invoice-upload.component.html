@@ -18,7 +18,7 @@
         </button>
         <div class="header-divider"></div>
         <button class="btn-cancel" id="btn-invoice-cancel" title="Cancel">Cancel</button>
-        <button class="btn-save" id="btn-invoice-save" title="Save">Save</button>
+        <button class="btn-save" id="btn-invoice-save" title="Save" (click)="onSave()">Save</button>
         <button class="btn-back" routerLink="/" title="Back to Home">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -47,11 +47,11 @@
             </div>
             <div class="field-group">
               <label>PAR <span class="required-star">*</span></label>
-              <input type="text" placeholder="PAR" />
+              <input type="text" placeholder="PAR" [(ngModel)]="par" />
             </div>
             <div class="field-group">
               <label>PO <span class="required-star">*</span></label>
-              <input type="text" placeholder="PO" />
+              <input type="text" placeholder="PO" [(ngModel)]="po" />
             </div>
 
             <div class="field-group">
@@ -105,7 +105,7 @@
             </div>
             <div class="field-group">
               <label>Inv Number <span class="required-star">*</span></label>
-              <input type="text" placeholder="INV-" />
+              <input type="text" placeholder="INV-" [(ngModel)]="invNumber" />
             </div>
 
             <div class="field-group">
@@ -161,7 +161,7 @@
               </div>
 
               <div class="field-group">
-                <label>Account</label>
+                <label>Account <span class="required-star">*</span></label>
                 <app-hierarchy-select [(ngModel)]="item.account" [groups]="accountGroups" placeholder="Search account…">
                 </app-hierarchy-select>
               </div>
@@ -333,53 +333,86 @@
                 <!-- Inner Rounded Border Card -->
                 <div class="recharge-v1-inner-card">
                   <table class="recharge-v1-table">
-                    <thead>
+                    <thead *ngIf="rline.rechargeSites.length > 0">
                       <tr>
                         <th class="col-chk"></th>
                         <th class="col-amount">Monthly Amount</th>
                         <th class="col-pct">%</th>
-                        <th class="col-months">From month To month</th>
+                        <th class="col-months">
+                          <span class="recharge-period"
+                            *ngIf="rline.periodStart && rline.periodEnd; else noPeriodHead">
+                            From {{ rline.periodStart | date:'MMMM yyyy' }} to {{ rline.periodEnd | date:'MMMM yyyy' }}
+                          </span>
+                          <ng-template #noPeriodHead>
+                            <span class="recharge-period recharge-period--empty">No period set</span>
+                          </ng-template>
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
-                      <tr>
-                        <td class="cell-chk">
-                          <label class="custom-chk-container">
-                            <input type="checkbox" checked />
-                            <span class="chk-box-visual">X</span>
-                            <span class="chk-text">Shipley</span>
-                          </label>
-                        </td>
-                        <td class="cell-amount">
-                          <input type="text" class="recharge-cell-input" />
-                        </td>
-                        <td class="cell-pct">
-                          <input type="text" class="recharge-cell-input" />
-                        </td>
-                        <td class="cell-months">
-                          <a href="javascript:void(0)" class="recharge-action-link">Select Site</a>
+                      <tr *ngIf="rline.rechargeSites.length === 0">
+                        <td colspan="4" class="recharge-empty-state">
+                          No sites selected yet — click <strong>+ Select Site</strong> to pick where this line's cost
+                          should be recharged.
                         </td>
                       </tr>
-                      <tr>
+                      <tr *ngFor="let alloc of rline.rechargeSites; let ai = index">
                         <td class="cell-chk">
                           <label class="custom-chk-container">
-                            <input type="checkbox" checked />
+                            <input type="checkbox" checked (click)="removeRechargeSite(rline, ai)" />
                             <span class="chk-box-visual">X</span>
-                            <span class="chk-text">CT</span>
+                            <span class="chk-text">{{ alloc.site }}</span>
                           </label>
                         </td>
                         <td class="cell-amount">
-                          <input type="text" class="recharge-cell-input" />
+                          <input type="number" min="0" step="0.01" class="recharge-cell-input"
+                            [class.recharge-derived]="alloc.mode === 'pct' && displayAmount(rline, alloc)"
+                            [ngModel]="displayAmount(rline, alloc)"
+                            (ngModelChange)="onAmountEntry(rline, alloc, $event)"
+                            title="Enter a fixed amount (or use %)" />
                         </td>
                         <td class="cell-pct">
-                          <input type="text" class="recharge-cell-input" />
+                          <input type="number" min="0" max="100" step="0.01" class="recharge-cell-input"
+                            #pctModel="ngModel"
+                            [class.recharge-derived]="alloc.mode === 'amount' && displayPct(rline, alloc)"
+                            [ngModel]="displayPct(rline, alloc)"
+                            (ngModelChange)="onPctEntry(rline, alloc, $event, pctModel)"
+                            title="Enter a percentage (or use amount)" />
                         </td>
-                        <td class="cell-months">
-                          <a href="javascript:void(0)" class="recharge-action-link">Spread evenly</a>
-                        </td>
+                        <td class="cell-months"></td>
                       </tr>
                     </tbody>
                   </table>
+
+                  <!-- Add-site control: blue link opens the org-hierarchy site dropdown -->
+                  <div class="recharge-add-row">
+                    <a href="javascript:void(0)" class="recharge-action-link"
+                      (click)="rline.sitePickerOpen = !rline.sitePickerOpen">+ Select Site</a>
+                    <a href="javascript:void(0)" class="recharge-action-link" *ngIf="rline.rechargeSites.length > 0"
+                      (click)="spreadRechargeEvenly(rline)">Spread evenly</a>
+
+                    <div class="recharge-site-picker-inline" *ngIf="rline.sitePickerOpen">
+                      <app-hierarchy-select
+                        [(ngModel)]="rline.rechargeSitePicker"
+                        [groups]="rechargeSiteGroups"
+                        (ngModelChange)="addRechargeSite(rline, $event)"
+                        placeholder="Search any site…">
+                      </app-hierarchy-select>
+                    </div>
+                  </div>
+
+                  <!-- Allocation total — delta must equal 0 (allocations must sum to 100%) -->
+                  <div class="recharge-total-row" *ngIf="rline.rechargeSites.length > 0"
+                    [class.balanced]="rechargeIsBalanced(rline)" [class.unbalanced]="!rechargeIsBalanced(rline)">
+                    <span class="recharge-total-label">Total Allocation</span>
+                    <span class="recharge-total-value">
+                      {{ rechargeTotalPct(rline) | number:'1.0-2' }}% · {{ rechargeAllocatedAmount(rline) | number:'1.2-2' }}
+                    </span>
+                    <span class="recharge-total-flag" *ngIf="!rechargeIsBalanced(rline)">
+                      Delta {{ rechargeDelta(rline) | number:'1.2-2' }} — must equal 0
+                    </span>
+                  </div>
+
                 </div>
               </div>
 

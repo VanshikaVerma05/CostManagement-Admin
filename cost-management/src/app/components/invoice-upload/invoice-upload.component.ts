@@ -1,4 +1,5 @@
 import { Component, OnDestroy } from '@angular/core';
+import { NgModel } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Observable } from 'rxjs';
 import { SelectGroup } from '../../features/hierarchy-select/hierarchy-select.component';
@@ -7,6 +8,13 @@ import { InternalOrderService } from '../../services/internal-order.service';
 
 interface FieldChange { field: string; from: string; to: string; }
 interface ChangeRecord { timestamp: Date; user: string; changes: FieldChange[]; }
+interface RechargeAllocation {
+  site: string;
+  /** Which value the user entered — the other is derived for totals/delta. */
+  mode: 'pct' | 'amount';
+  pct: number | null;
+  amount: number | null;
+}
 
 @Component({
   selector: 'app-invoice-upload',
@@ -133,6 +141,48 @@ export class InvoiceUploadComponent implements OnDestroy {
     }
   ];
 
+  /**
+   * Full org-hierarchy site catalogue for recharge — *any* site in the system can be
+   * a recharge target, not just the current invoice's site.
+   */
+  rechargeSiteGroups: SelectGroup[] = [
+    {
+      group: 'UK & Ireland',
+      items: [
+        { value: 'london-hq', label: 'London HQ' },
+        { value: 'shipley', label: 'Shipley' },
+        { value: 'bradford', label: 'Bradford' },
+        { value: 'manchester', label: 'Manchester' },
+        { value: 'dublin', label: 'Dublin' }
+      ]
+    },
+    {
+      group: 'Europe',
+      items: [
+        { value: 'amsterdam', label: 'Amsterdam' },
+        { value: 'paris', label: 'Paris' },
+        { value: 'madrid', label: 'Madrid' },
+        { value: 'barcelona', label: 'Barcelona' },
+        { value: 'istanbul', label: 'Istanbul' }
+      ]
+    },
+    {
+      group: 'Americas',
+      items: [
+        { value: 'new-york', label: 'New York' },
+        { value: 'connecticut', label: 'Connecticut (CT)' },
+        { value: 'toronto', label: 'Toronto' }
+      ]
+    },
+    {
+      group: 'APAC',
+      items: [
+        { value: 'singapore', label: 'Singapore' },
+        { value: 'sydney', label: 'Sydney' }
+      ]
+    }
+  ];
+
   invoiceDate: string = (() => {
     const prev = new Date();
     prev.setDate(1);
@@ -224,7 +274,8 @@ export class InvoiceUploadComponent implements OnDestroy {
       periodEnd: InvoiceUploadComponent.defaultPeriodEnd(),
       internalOrder: '', spendType: '', speedType: '',
       category: '', system: '', lineData: '', description: '',
-      amountCurrency: null, rechargeTo: '', recharge: false, amountSiteCurrency: null
+      amountCurrency: null, rechargeTo: '', recharge: false, amountSiteCurrency: null,
+      rechargeSites: [] as RechargeAllocation[], rechargeSitePicker: '', sitePickerOpen: false
     };
   }
 
@@ -238,6 +289,11 @@ export class InvoiceUploadComponent implements OnDestroy {
   lineItems = [this.blankLineItem(1)];
 
   isBudgeted = true;
+
+  // Mandatory General fields that were previously unbound inputs.
+  par = '';
+  po = '';
+  invNumber = '';
 
   /** Header-level FX rate (General section) applied to every line's amount. */
   exchangeRate: number | null = 1;
@@ -312,6 +368,179 @@ export class InvoiceUploadComponent implements OnDestroy {
   /** Lines flagged with Recharge % ON — each gets its own independent recharge panel. */
   get rechargeLines(): ReturnType<InvoiceUploadComponent['blankLineItem']>[] {
     return this.lineItems.filter(i => i.recharge);
+  }
+
+  /**
+   * Add a recharge target site to a line. Any site from the org hierarchy is allowed.
+   * Called on dropdown selection; resets the picker and redistributes evenly.
+   */
+  addRechargeSite(item: ReturnType<InvoiceUploadComponent['blankLineItem']>, site: string): void {
+    const label = (site || '').trim();
+    if (!label) return;
+    if (item.rechargeSites.some(a => a.site === label)) {
+      this.snackbar.show(`${label} is already in this line's recharge.`, 'warning');
+    } else {
+      item.rechargeSites.push({ site: label, mode: 'pct', pct: 0, amount: null });
+      this.spreadRechargeEvenly(item);
+    }
+    item.rechargeSitePicker = '';
+    item.sitePickerOpen = false;
+  }
+
+  removeRechargeSite(item: ReturnType<InvoiceUploadComponent['blankLineItem']>, index: number): void {
+    item.rechargeSites.splice(index, 1);
+    this.spreadRechargeEvenly(item);
+  }
+
+  /** Even-split the allocation across all selected sites as percentages, exact to 100%. */
+  spreadRechargeEvenly(item: ReturnType<InvoiceUploadComponent['blankLineItem']>): void {
+    const n = item.rechargeSites.length;
+    if (n === 0) return;
+    const base = Math.floor((100 / n) * 100) / 100;
+    let running = 0;
+    item.rechargeSites.forEach((a, idx) => {
+      a.mode = 'pct';
+      a.amount = null;
+      if (idx === n - 1) {
+        a.pct = +(100 - running).toFixed(2);
+      } else {
+        a.pct = base;
+        running += base;
+      }
+    });
+  }
+
+  // ─── Per-row entry: either an amount OR a percentage (not both) ───
+  onAmountEntry(item: ReturnType<InvoiceUploadComponent['blankLineItem']>, alloc: RechargeAllocation, value: any): void {
+    alloc.amount = value === '' || value === null || value === undefined ? null : Number(value);
+    alloc.mode = 'amount';
+  }
+
+  onPctEntry(item: ReturnType<InvoiceUploadComponent['blankLineItem']>, alloc: RechargeAllocation, value: any, model?: NgModel): void {
+    let num = value === '' || value === null || value === undefined ? null : Number(value);
+    let clamped = false;
+    if (num !== null) {
+      if (num > 100) {
+        num = 100;
+        clamped = true;
+        this.snackbar.show('Recharge percentage cannot exceed 100%.', 'warning');
+      } else if (num < 0) {
+        num = 0;
+        clamped = true;
+      }
+    }
+    alloc.pct = num;
+    alloc.mode = 'pct';
+    // Force the input to reflect the clamped value even if the model value is unchanged.
+    if (clamped && model) {
+      model.control.setValue(num);
+    }
+  }
+
+  /** The line amount being distributed (site currency). */
+  private rechargeLineTotal(item: ReturnType<InvoiceUploadComponent['blankLineItem']>): number {
+    return this.siteCurrencyAmount(item) ?? 0;
+  }
+
+  /** Effective money for a site: entered amount, or % of the line total. */
+  effectiveAmount(item: ReturnType<InvoiceUploadComponent['blankLineItem']>, alloc: RechargeAllocation): number {
+    if (alloc.mode === 'amount') return Number(alloc.amount) || 0;
+    return this.rechargeLineTotal(item) * (Number(alloc.pct) || 0) / 100;
+  }
+
+  /** Effective percentage for a site: entered %, or amount ÷ line total. */
+  effectivePct(item: ReturnType<InvoiceUploadComponent['blankLineItem']>, alloc: RechargeAllocation): number {
+    if (alloc.mode === 'pct') return Number(alloc.pct) || 0;
+    const total = this.rechargeLineTotal(item);
+    return total > 0 ? (Number(alloc.amount) || 0) / total * 100 : 0;
+  }
+
+  /** Value shown in the amount cell — raw when entered, derived (2dp) otherwise. */
+  displayAmount(item: ReturnType<InvoiceUploadComponent['blankLineItem']>, alloc: RechargeAllocation): number | null {
+    if (alloc.mode === 'amount') return alloc.amount;
+    return +this.effectiveAmount(item, alloc).toFixed(2);
+  }
+
+  /** Value shown in the % cell — raw when entered, derived (2dp) otherwise. */
+  displayPct(item: ReturnType<InvoiceUploadComponent['blankLineItem']>, alloc: RechargeAllocation): number | null {
+    if (alloc.mode === 'pct') return alloc.pct;
+    return +this.effectivePct(item, alloc).toFixed(2);
+  }
+
+  rechargeAllocatedAmount(item: ReturnType<InvoiceUploadComponent['blankLineItem']>): number {
+    return item.rechargeSites.reduce((sum, a) => sum + this.effectiveAmount(item, a), 0);
+  }
+
+  rechargeTotalPct(item: ReturnType<InvoiceUploadComponent['blankLineItem']>): number {
+    return item.rechargeSites.reduce((sum, a) => sum + this.effectivePct(item, a), 0);
+  }
+
+  /** Delta = line amount − Σ site recharge amounts. Must be 0 to save. */
+  rechargeDelta(item: ReturnType<InvoiceUploadComponent['blankLineItem']>): number {
+    return this.rechargeLineTotal(item) - this.rechargeAllocatedAmount(item);
+  }
+
+  /** At least one site must carry a value (amount or %). */
+  rechargeHasValue(item: ReturnType<InvoiceUploadComponent['blankLineItem']>): boolean {
+    return item.rechargeSites.some(a =>
+      a.mode === 'amount' ? (Number(a.amount) || 0) > 0 : (Number(a.pct) || 0) > 0
+    );
+  }
+
+  rechargeIsBalanced(item: ReturnType<InvoiceUploadComponent['blankLineItem']>): boolean {
+    if (item.rechargeSites.length === 0 || !this.rechargeHasValue(item)) return false;
+    return Math.abs(this.rechargeDelta(item)) < 0.005;
+  }
+
+  /** Collects the labels of all mandatory (*) fields the user hasn't filled. */
+  private missingMandatoryFields(): string[] {
+    const missing: string[] = [];
+
+    if (!this.selectedSupplier) missing.push('Supplier');
+    if (!this.par.trim()) missing.push('PAR');
+    if (!this.po.trim()) missing.push('PO');
+    if (!this.selectedSite) missing.push('Site');
+    if (!this.selectedTeam) missing.push('Team');
+    if (!this.selectedCurrency) missing.push('Currency');
+    if (!this.accountingDate) missing.push('Accounting Date');
+    if (this.invAmount === null || this.invAmount === undefined) missing.push('Inv Amount');
+    if (!this.invNumber.trim()) missing.push('Inv Number');
+    if (!this.invoiceDate) missing.push('Invoice Date');
+
+    this.lineItems.forEach(item => {
+      const label = `Line ${item.line}`;
+      if (!item.account) missing.push(`${label}: Account`);
+      if (!item.internalOrder) missing.push(`${label}: Internal Order`);
+      if (item.amountCurrency === null || item.amountCurrency === undefined) {
+        missing.push(`${label}: Amount Inv Currency`);
+      }
+    });
+
+    return missing;
+  }
+
+  /** Save guard — blocks on missing mandatory fields, then on recharge delta ≠ 0. */
+  onSave(): void {
+    const missing = this.missingMandatoryFields();
+    if (missing.length > 0) {
+      this.snackbar.show(
+        `Cannot save — please fill the required field(s): ${missing.join(', ')}.`,
+        'error',
+        8000
+      );
+      return;
+    }
+
+    const unbalanced = this.lineItems.filter(i => i.recharge && !this.rechargeIsBalanced(i));
+    if (unbalanced.length > 0) {
+      const lines = unbalanced.map(i => `Line ${i.line}`).join(', ');
+      this.snackbar.show(
+        `Cannot save — recharge must total 100% (delta = 0). Adjust ${lines}.`,
+        'error'
+      );
+      return;
+    }
+    this.snackbar.show('Invoice saved.', 'success');
   }
 
   /** Warn if a user-overridden line number collides with another line in this invoice. */

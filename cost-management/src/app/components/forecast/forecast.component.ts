@@ -162,6 +162,63 @@ export class ForecastComponent {
     this.forecastRows = this.forecastRows.filter(r => r.id !== id);
   }
 
+  // ── Monthly comments (per row, per year) ───────────────────────────────────
+  private readonly COMMENTS_KEY = 'forecast-row-comments';
+
+  commentModalOpen = false;
+  commentRow: ForecastRow | null = null;
+  /** Working copy of the 12 month comments while the modal is open. */
+  commentDraft: string[] = [];
+
+  /** Shape in localStorage: { [rowId]: { [year]: string[12] } } */
+  private loadCommentStore(): Record<string, Record<string, string[]>> {
+    try {
+      const raw = localStorage.getItem(this.COMMENTS_KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch {
+      return {};
+    }
+  }
+
+  private writeCommentStore(store: Record<string, Record<string, string[]>>): void {
+    localStorage.setItem(this.COMMENTS_KEY, JSON.stringify(store));
+  }
+
+  get commentModalTitle(): string {
+    const label = this.commentRow?.internalOrder || 'Row';
+    return `Monthly Comments — ${label} (${this.currentYear})`;
+  }
+
+  /** Number of months with a saved comment for this row in the current year (badge). */
+  commentCount(row: ForecastRow): number {
+    const saved = this.loadCommentStore()[row.id]?.[this.currentYear] ?? [];
+    return saved.filter(c => !!c && c.trim().length > 0).length;
+  }
+
+  openComments(row: ForecastRow): void {
+    this.commentRow = row;
+    const saved = this.loadCommentStore()[row.id]?.[this.currentYear] ?? [];
+    // Always 12 slots, pre-filled with whatever was saved for this row+year.
+    this.commentDraft = this.months.map((_, i) => saved[i] ?? '');
+    this.commentModalOpen = true;
+  }
+
+  saveComments(): void {
+    if (!this.commentRow) return;
+    const store = this.loadCommentStore();
+    const rowKey = String(this.commentRow.id);
+    if (!store[rowKey]) store[rowKey] = {};
+    store[rowKey][this.currentYear] = [...this.commentDraft];
+    this.writeCommentStore(store);
+    this.closeComments();
+  }
+
+  closeComments(): void {
+    this.commentModalOpen = false;
+    this.commentRow = null;
+    this.commentDraft = [];
+  }
+
   // ── Save / Cancel ──────────────────────────────────────────────────────────
   saveChanges(): void {
     // TODO: Replace with:

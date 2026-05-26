@@ -702,6 +702,116 @@ tr.sub-recharge .value-cell input[type="number"] { color: #10b981; }
   }
 }
 
+/* Stack the row actions vertically (remove on top, comment below) */
+.lc-act-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-comment {
+  position: relative;
+  background: transparent;
+  border: 1px solid rgba(56, 189, 248, 0.18);
+  color: rgba(56, 189, 248, 0.55);
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(56, 189, 248, 0.12);
+    color: #38bdf8;
+    border-color: rgba(56, 189, 248, 0.4);
+  }
+
+  .comment-badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    min-width: 14px;
+    height: 14px;
+    padding: 0 3px;
+    border-radius: 7px;
+    background: #38bdf8;
+    color: #0b0f19;
+    font-size: 9px;
+    font-weight: 700;
+    line-height: 14px;
+    text-align: center;
+  }
+}
+
+/* ─── Monthly Comments Modal content ─────────────────────────────── */
+.comment-modal-body {
+  .comment-modal-hint {
+    margin: 0 0 16px;
+    font-size: 12.5px;
+    color: var(--text-secondary);
+
+    strong { color: var(--accent-color); }
+  }
+
+  .comment-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px 16px;
+  }
+
+  .comment-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .comment-month {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: var(--text-label);
+  }
+
+  .comment-input {
+    width: 100%;
+    box-sizing: border-box;
+    resize: vertical;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-size: 12.5px;
+    font-family: inherit;
+    padding: 6px 8px;
+    transition: border-color var(--transition-speed);
+
+    &:focus {
+      outline: none;
+      border-color: var(--accent-color);
+    }
+
+    &::placeholder { color: var(--text-muted); }
+  }
+
+  .comment-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 18px;
+  }
+}
+
+@media (max-width: 768px) {
+  .comment-modal-body .comment-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* ─── Table Footers ──────────────────────────────────────────── */
 tfoot tr {
   height: 34px;
