@@ -1,19 +1,7 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "cost-management/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist/cost-management"
-      }
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
+  "buildCommand": "cd cost-management && npm install --legacy-peer-deps && npx ng build --configuration production",
+  "outputDirectory": "cost-management/dist/cost-management",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
-

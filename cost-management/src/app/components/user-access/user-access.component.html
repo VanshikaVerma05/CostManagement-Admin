@@ -1,0 +1,147 @@
+<div class="useraccess-page">
+  <div class="scroll-area">
+
+    <div class="page-header">
+      <div>
+        <h2 class="page-title">User Access</h2>
+        <p class="page-subtitle">Manage role-based permissions for each module</p>
+      </div>
+    </div>
+
+    <!-- ── Controls bar ── -->
+    <div class="controls-bar">
+
+      <!-- Role dropdown -->
+      <div class="role-selector">
+        <span class="selector-label">Please select role</span>
+        <div class="dd-wrap">
+          <button class="dd-trigger" (click)="showDropdown = !showDropdown">
+            <span [class.placeholder]="!selectedRole">
+              {{ selectedRole ? selectedRole.name : 'Select a role…' }}
+            </span>
+            <svg class="chevron" [class.open]="showDropdown" width="14" height="14"
+              viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </button>
+
+          <div class="dd-list" *ngIf="showDropdown">
+            <div class="dd-item"
+              *ngFor="let role of roles"
+              [class.active]="selectedRole?.name === role.name"
+              (click)="selectRole(role)">
+              {{ role.name }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Add new role + Add row -->
+      <div class="add-actions-wrap">
+        <div class="add-btn-group">
+          <button class="btn-add-role" (click)="showNewRoleInput = !showNewRoleInput; showAddRow = false">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="16"/>
+              <line x1="8" y1="12" x2="16" y2="12"/>
+            </svg>
+            Add New Role
+          </button>
+          <button class="btn-add-row" (click)="showAddRow = !showAddRow; showNewRoleInput = false">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Add Row
+          </button>
+        </div>
+        <div class="inline-input-row" *ngIf="showNewRoleInput">
+          <input class="inline-input" type="text" [(ngModel)]="newRoleName"
+            placeholder="Enter role name…" (keyup.enter)="addRole()" />
+          <button class="btn-confirm" (click)="addRole()">Add</button>
+          <button class="btn-dismiss" (click)="showNewRoleInput = false; newRoleName = ''">Cancel</button>
+        </div>
+        <div class="inline-input-row" *ngIf="showAddRow">
+          <input class="inline-input" type="text" [(ngModel)]="newRowName"
+            placeholder="Enter module name…" (keyup.enter)="confirmAddRow()" />
+          <button class="btn-confirm" (click)="confirmAddRow()">Add</button>
+          <button class="btn-dismiss" (click)="cancelAddRow()">Cancel</button>
+        </div>
+      </div>
+
+      <!-- Update -->
+      <button class="btn-update" (click)="update()" [disabled]="!selectedRole">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+          <polyline points="17 21 17 13 7 13 7 21"/>
+          <polyline points="7 3 7 8 15 8"/>
+        </svg>
+        Update
+      </button>
+
+    </div>
+
+    <!-- ── Permissions table ── -->
+    <div class="perm-card" [class.no-role]="!selectedRole">
+
+      <!-- Table header -->
+      <div class="perm-header">
+        <div class="col-expand"></div>
+        <div class="col-name">Module</div>
+        <div class="col-btn">W</div>
+        <div class="col-btn">R</div>
+      </div>
+
+      <!-- Module rows -->
+      <ng-container *ngFor="let mod of displayModules; let last = last">
+
+        <div class="perm-row" [class.expanded]="mod.expanded" [class.last]="last && !mod.expanded">
+          <!-- Expand arrow -->
+          <button class="expand-btn" (click)="toggleExpand(mod)">
+            <svg class="expand-icon" [class.open]="mod.expanded"
+              width="13" height="13" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </button>
+
+          <span class="mod-name">{{ mod.name }}</span>
+
+          <button class="perm-btn w-btn" [class.on]="mod.write" [disabled]="!selectedRole" (click)="toggleWrite(mod)">W</button>
+          <button class="perm-btn r-btn" [class.on]="mod.read"  [disabled]="!selectedRole" (click)="toggleRead(mod)">R</button>
+        </div>
+
+        <!-- Expanded children area -->
+        <div class="children-area" *ngIf="mod.expanded">
+          <div class="child-row" *ngFor="let child of mod.children">
+            <div class="col-expand"></div>
+            <span class="child-name">{{ child.name }}</span>
+            <button class="perm-btn w-btn sm" [class.on]="child.write" [disabled]="!selectedRole" (click)="toggleWrite(child)">W</button>
+            <button class="perm-btn r-btn sm" [class.on]="child.read"  [disabled]="!selectedRole" (click)="toggleRead(child)">R</button>
+          </div>
+          <div class="no-children" *ngIf="mod.children.length === 0">
+            No sub-items
+          </div>
+        </div>
+
+      </ng-container>
+
+    </div>
+
+    <!-- ── No-role hint ── -->
+    <div class="no-role-hint" *ngIf="!selectedRole">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="12" y1="8" x2="12" y2="12"/>
+        <line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      Select a role above to enable permission editing.
+    </div>
+
+  </div>
+</div>

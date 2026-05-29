@@ -1,13 +1,12 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { HomeComponent } from './components/home/home.component';
-import { InvoiceUploadComponent } from './components/invoice-upload/invoice-upload.component';
-import { ForecastComponent } from './components/forecast/forecast.component';
+import { GeneraladminsectionComponent } from './components/generaladminsection/generaladminsection.component';
+import { UserAccessComponent } from './components/user-access/user-access.component';
 
 const routes: Routes = [
-  { path: '', component: HomeComponent },
-  { path: 'invoice-upload', component: InvoiceUploadComponent },
-  { path: 'forecast', component: ForecastComponent }
+  { path: '',            component: GeneraladminsectionComponent },
+  { path: 'user-access', component: UserAccessComponent },
+  { path: '**', redirectTo: '' }
 ];
 
 @NgModule({
